@@ -19,7 +19,9 @@ namespace BE.Models
             typeof(List<string>),
             typeof(List<int>),
             typeof(List<float>),
-            typeof(List<double>)};
+            typeof(List<double>),
+            typeof(BEExpression)
+        };
 
         /// <summary>
         /// Condition constructor
@@ -54,9 +56,9 @@ namespace BE.Models
             return a;
         }
     }
-    public class AndCondition : ConditionBase
+    public class ConditionGroup : ConditionBase
     {
-        public AndCondition(params ConditionBase[] conditions) : base(ConditionType.And)
+        public ConditionGroup(ConditionType type, params ConditionBase[] conditions) : base(type)
         {
             Value = new List<ConditionBase>(conditions);
         }
@@ -67,18 +69,18 @@ namespace BE.Models
             return (List<ConditionBase>)Value;
         }
     }
-    public class OrCondition : ConditionBase
+    public class AndCondition : ConditionGroup
     {
-        public OrCondition(params ConditionBase[] conditions) : base(ConditionType.Or)
+        public AndCondition(params ConditionBase[] conditions) : base(ConditionType.And, conditions)
         {
-            Value = new List<ConditionBase>(conditions);
         }
-        public void Add(ConditionBase condition) { ((List<ConditionBase>)Value).Add(condition); }
-        public void AddRange(ConditionBase[] conditions) { ((List<ConditionBase>)Value).AddRange(conditions); }
-        public List<ConditionBase> GetConditions()
+    }
+    public class OrCondition : ConditionGroup
+    {
+        public OrCondition(params ConditionBase[] conditions) : base(ConditionType.Or, conditions)
         {
-            return (List<ConditionBase>)Value;
         }
+
     }
     public class ConditionBase
     {
@@ -140,4 +142,29 @@ namespace BE.Models
         }
     }
 
+    public class BEExpression
+    {
+        public BEExpression(BEExpressionValue left, BEExpressionValue right, Operator op)
+        {
+            Left = left;
+            Right = right;
+            Operator = op;
+        }
+        public BEExpressionValue Left { get; set; }
+        public BEExpressionValue Right { get; set; }
+        public Operator Operator { get; set; }
+    }
+    public class BEExpressionValue
+    {
+        public BEExpressionValueType Type { get; set; }
+        public object Value { get; set; }
+    }
+    public enum BEExpressionValueType
+    {
+        Expression,Field,Constant
+    }
+    public enum Operator
+    {
+        Add, Subtract, Multiply,Divide,Modulo,Power
+    }
 }

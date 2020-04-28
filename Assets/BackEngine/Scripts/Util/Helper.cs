@@ -556,6 +556,10 @@ namespace BE.Util
                                 }
                                 arrayName[0] = arrayName[0].ToString().ToLower()[0];
                                 string propertyName = new string(arrayName);
+                                if (propertyName == "left")
+                                {
+                                    string st = "";
+                                }
                                 list.Add("\"" + propertyName + "\":" + propertyValue.ToJson());
                                 listFields.Add(propertyName.ToLower());
                             }

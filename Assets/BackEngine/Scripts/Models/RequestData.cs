@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 
 namespace BE.Models
 {
@@ -10,16 +11,17 @@ namespace BE.Models
         public int Page { get; private set; } = 0;
         public int PageSize { get; private set; } = 0;
 
-        public Dictionary<string, SortType> Sorts { get; set; } 
+        public Dictionary<string, SortType> Sorts { get; set; }
 
         public ConditionBase Condition { get; set; }
 
         public RequestData()
         {
         }
-        public RequestData Where(QueryableFunc callBack)
+        public RequestData Where(QueryableFunc callback)
         {
-            var value = (callBack(new ConditionBuilder()));
+            var builder = new ConditionBuilder();
+            var value = callback(builder);
             if (Condition == null)
             {
                 Condition = value;
@@ -41,7 +43,7 @@ namespace BE.Models
             Filters.AddRange(fieldNames.Split(','));
             return this;
         }
-       
+
         /// <summary>
         /// Add Request Filter
         /// </summary>
@@ -88,5 +90,22 @@ namespace BE.Models
         }
 
     }
-
+    public static class RequestHelper
+    {
+        public static RequestData Where<T>(this RequestData source, Expression<Func<T, bool>> predicate) where T : class
+        {
+            var builder = new ConditionExpressionBulder<T>(predicate);
+            var value = builder.ToCondition();
+            if (source.Condition == null)
+            {
+                source.Condition = value;
+            }
+            else
+            {
+                var v = source.Condition;
+                source.Condition = v & value;
+            }
+            return source;
+        }
+    }
 }
