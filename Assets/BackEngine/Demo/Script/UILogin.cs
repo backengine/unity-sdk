@@ -20,8 +20,10 @@ namespace BE.Demo
             {
                 Manager.ShowLoading();
                 var requestData = new RequestData<UserModel>();
+                List<string> listEmails = new List<string>();
+                listEmails.Add( Email.text);
                 requestData = requestData.Where(
-                    x => x.email == Email.text && x.password == Password.text
+                    x => listEmails.Contains( x.email)&& x.password == Password.text
                 );
                 BERequest.Instance.Auth(requestData, (error, response) =>
                 {

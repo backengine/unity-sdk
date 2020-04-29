@@ -69,8 +69,8 @@ namespace BE.Models
                     {
                         if (v2.Type==ExpressionValueType.Field && etype1.IsGenericType && etype1.GetGenericTypeDefinition() == typeof(List<>))
                         {
-                            string fieldName = v2.ToString();
-                            object value = v1;
+                            string fieldName = v2.Value.ToString();
+                            object value = v1.Value;
                             Condition c = new Condition(fieldName, value, parentXExpressionType.Count == 0 || parentXExpressionType.Peek() != ExpressionType.Not ? ConditionType.In : ConditionType.NotIn);
                             if (condition == null)
                             {
@@ -84,8 +84,8 @@ namespace BE.Models
                         }
                         if (v1.Type == ExpressionValueType.Field && etype2.IsGenericType && etype2.GetGenericTypeDefinition() == typeof(List<>))
                         {
-                            string fieldName = v1.ToString();
-                            object value = v2;
+                            string fieldName = v1.Value.ToString();
+                            object value = v2.Value;
                             Condition c = new Condition(fieldName, value, parentXExpressionType.Count ==0 || parentXExpressionType.Peek() != ExpressionType.Not ? ConditionType.In : ConditionType.NotIn);
                             if (condition == null)
                             {
@@ -236,9 +236,7 @@ namespace BE.Models
                 }
                 currentNodes.Push(or);
                 Visit(node.Left);
-                MakeCallExpression(node.Left);
                 Visit(node.Right);
-                MakeCallExpression(node.Right);
                 currentNodes.Pop();
             }
             else if (node.NodeType == ExpressionType.LessThan)
@@ -367,7 +365,13 @@ namespace BE.Models
                 BEExpression expression = CreateExpression(Operator.Power);
                 expressionPairs.Push(new BEExpressionValue() { Type = ExpressionValueType.Expression, Value = expression });
             }
-            lastExpressionType=parentXExpressionType.Pop();
+            else if (node.NodeType == ExpressionType.Call)
+            {
+                Visit(node.Left);
+                Visit(node.Right);
+                MakeCallExpression(node);
+            }
+            lastExpressionType =parentXExpressionType.Pop();
             return node;
         }
 
