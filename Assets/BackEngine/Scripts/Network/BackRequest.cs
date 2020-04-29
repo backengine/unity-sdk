@@ -227,16 +227,7 @@ namespace BE.NetWork
             RequestData requestData = new RequestData();
             Helper.SetValueRequest(t, o, requestData, true);
             Helper.MakeWhereIdentityRequest(t, o, requestData);
-            var attr = t.GetCustomAttribute(typeof(SchemaAttribute));
-            var schema = "";
-            if (attr != null)
-            {
-                schema = ((SchemaAttribute)attr).Name;
-            }
-            else
-            {
-                schema = t.Name;
-            }
+            var schema = GetSchema(t);
             string data = Helper.GetRequestString("updateOne", schema, requestData);
             StartCoroutine(ProcessQuery(data, callback));
         }

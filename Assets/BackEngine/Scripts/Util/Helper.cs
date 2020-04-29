@@ -474,7 +474,7 @@ namespace BE.Util
         }
         internal static void DefaultIncludeFields<T>(RequestData<T> request) where T : class
         {
-            if (request.Filters.Count > 0)
+            if (request.Filters!=null&&request.Filters.Count > 0)
             {
                 for (var i = 0; i < request.Filters.Count; i++)
                 {

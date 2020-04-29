@@ -9,4 +9,6 @@ public class UserModel
     public string name;
     public string email;
     public string password;
+    public string deviceId;
+    public int score;
 }

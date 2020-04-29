@@ -177,7 +177,7 @@ namespace BE.Models
             base.Take(page, pageSize);
             return this;
         }
-        public RequestData<T> SetValue<P>(Expression<Func<T, P>> expression, object value)
+        public RequestData<T> SetValue<P>(Expression<Func<T, P>> expression,object value)
         {
             string propertyName = GetMemberName(expression);
             SetValue(propertyName, value);
