@@ -31,7 +31,7 @@ namespace BE.Models
         Stack<ConditionBase> currentNodes = new Stack<ConditionBase>();
         Stack<ExpressionType> parentXExpressionType = new Stack<ExpressionType>();
         ConditionBase condition;
-        Stack<ExpressionHand> expressionPairs = new Stack<ExpressionHand>();
+        Stack<BEExpressionValue> expressionPairs = new Stack<BEExpressionValue>();
         public ConditionBase ToCondition()
         {
             Visit(predicate.Body);
@@ -89,86 +89,63 @@ namespace BE.Models
                 }
             }
         }
-        private  Condition CreateCondition(ConditionType type)
+        private ConditionBase CreateCondition(ConditionType type)
         {
             var expression2 = expressionPairs.Pop();
             var expression1 = expressionPairs.Pop();
-            if (expression1.IsField)
+            if (expression1.Type == ExpressionValueType.Field)
             {
                 return new Condition(expression1.Value.ToString(), expression2.Value, type);
             }
-            if (type == ConditionType.Greater)
+            if (expression2.Type == ExpressionValueType.Field)
             {
-                type = ConditionType.Lessthan;
+                if (type == ConditionType.Greater)
+                {
+                    type = ConditionType.Lessthan;
+                }
+                else if (type == ConditionType.Lessthan)
+                {
+                    type = ConditionType.Greater;
+                }
+                else if (type == ConditionType.GreaterEquals)
+                {
+                    type = ConditionType.LessthanEquals;
+                }
+                else if (type == ConditionType.LessthanEquals)
+                {
+                    type = ConditionType.GreaterEquals;
+                }
+                return new Condition(expression2.Value.ToString(), expression1.Value, type);
             }
-            else if (type == ConditionType.Lessthan)
+            Operator op=Operator.Equals;
+            switch (type)
             {
-                type = ConditionType.Greater;
+                case ConditionType.Equals:
+                    op = Operator.Equals;
+                    break;
+                case ConditionType.Greater:
+                    op = Operator.Greater;
+                    break;
+                case ConditionType.GreaterEquals:
+                    op = Operator.GreaterEquals;
+                    break;
+                case ConditionType.Lessthan:
+                    op = Operator.Lessthan;
+                    break;
+                case ConditionType.LessthanEquals:
+                    op = Operator.Lessthan;
+                    break;
+                case ConditionType.NotEquals:
+                    op = Operator.NotEquals;
+                    break;
             }
-            else if (type == ConditionType.GreaterEquals)
-            {
-                type = ConditionType.LessthanEquals;
-            }
-            else if (type == ConditionType.LessthanEquals)
-            {
-                type = ConditionType.GreaterEquals;
-            }
-            return new Condition(expression2.Value.ToString(), expression1.Value, type);
+            return new ExpressionCondition(new BEExpression(expression1, expression2, op));
         }
         private BEExpression CreateExpression(Operator op)
         {
             var expression2 = expressionPairs.Pop();
             var expression1 = expressionPairs.Pop();
-            BEExpressionValue v1, v2;
-            if (expression1.IsField)
-            {
-                v1 = new BEExpressionValue()
-                {
-                    Type = BEExpressionValueType.Field,
-                    Value = expression1.Value.ToString()
-                };
-            }
-            else if(expression1.Value is BEExpression)
-            {
-                v1 = new BEExpressionValue()
-                {
-                    Type = BEExpressionValueType.Expression,
-                    Value = expression1.Value
-                };
-            }
-            else
-            {
-                v1 = new BEExpressionValue()
-                {
-                    Type = BEExpressionValueType.Constant,
-                    Value = expression1.Value
-                };
-            }
-            if (expression2.IsField)
-            {
-                v2 = new BEExpressionValue()
-                {
-                    Type = BEExpressionValueType.Field,
-                    Value = expression2.Value.ToString()
-                };
-            }
-            else if (expression2.Value is BEExpression)
-            {
-                v2 = new BEExpressionValue()
-                {
-                    Type = BEExpressionValueType.Expression,
-                    Value = expression2.Value
-                };
-            }
-            else
-            {
-                v2 = new BEExpressionValue()
-                {
-                    Type = BEExpressionValueType.Constant,
-                    Value = expression2.Value
-                };
-            }
-            return new BEExpression(v1, v2, op);
+            return new BEExpression(expression1, expression2, op);
         }
         protected override Expression VisitBinary(BinaryExpression node)
         {
@@ -213,7 +190,7 @@ namespace BE.Models
             {
                 Visit(node.Left);
                 Visit(node.Right);
-                Condition c = CreateCondition(ConditionType.Lessthan);
+                var c = CreateCondition(ConditionType.Lessthan);
                 if (condition == null)
                 {
                     condition = c;
@@ -227,7 +204,7 @@ namespace BE.Models
             {
                 Visit(node.Left);
                 Visit(node.Right);
-                Condition c = CreateCondition(ConditionType.LessthanEquals);
+                var c = CreateCondition(ConditionType.LessthanEquals);
                 if (condition == null)
                 {
                     condition = c;
@@ -241,7 +218,7 @@ namespace BE.Models
             {
                 Visit(node.Left);
                 Visit(node.Right);
-                Condition c = CreateCondition(ConditionType.Greater);
+                var c = CreateCondition(ConditionType.Greater);
                 if (condition == null)
                 {
                     condition = c;
@@ -255,7 +232,7 @@ namespace BE.Models
             {
                 Visit(node.Left);
                 Visit(node.Right);
-                Condition c = CreateCondition(ConditionType.GreaterEquals);
+                var c = CreateCondition(ConditionType.GreaterEquals);
                 if (condition == null)
                 {
                     condition = c;
@@ -269,7 +246,7 @@ namespace BE.Models
             {
                 Visit(node.Left);
                 Visit(node.Right);
-                Condition c = CreateCondition(parentXExpressionType.Count > 0 && parentXExpressionType.Peek() != ExpressionType.Not ? ConditionType.Equals : ConditionType.NotEquals);
+                var c = CreateCondition(parentXExpressionType.Count > 0 && parentXExpressionType.Peek() != ExpressionType.Not ? ConditionType.Equals : ConditionType.NotEquals);
                 if (condition == null)
                 {
                     condition = c;
@@ -283,7 +260,7 @@ namespace BE.Models
             {
                 Visit(node.Left);
                 Visit(node.Right);
-                Condition c = CreateCondition(parentXExpressionType.Count > 0 && parentXExpressionType.Peek() != ExpressionType.Not ? ConditionType.NotEquals : ConditionType.Equals);
+                var c = CreateCondition(parentXExpressionType.Count > 0 && parentXExpressionType.Peek() != ExpressionType.Not ? ConditionType.NotEquals : ConditionType.Equals);
                 if (condition == null)
                 {
                     condition = c;
@@ -298,42 +275,42 @@ namespace BE.Models
                 Visit(node.Left);
                 Visit(node.Right);
                 BEExpression expression = CreateExpression(Operator.Add);
-                expressionPairs.Push(new ExpressionHand() {IsField=false,Value= expression });
+                expressionPairs.Push(new BEExpressionValue() { Type = ExpressionValueType.Expression, Value = expression });
             }
             else if (node.NodeType == ExpressionType.Subtract)
             {
                 Visit(node.Left);
                 Visit(node.Right);
                 BEExpression expression = CreateExpression(Operator.Subtract);
-                expressionPairs.Push(new ExpressionHand() { IsField = false, Value = expression });
+                expressionPairs.Push(new BEExpressionValue() { Type = ExpressionValueType.Expression, Value = expression });
             }
             else if (node.NodeType == ExpressionType.Multiply)
             {
                 Visit(node.Left);
                 Visit(node.Right);
                 BEExpression expression = CreateExpression(Operator.Multiply);
-                expressionPairs.Push(new ExpressionHand() { IsField = false, Value = expression });
+                expressionPairs.Push(new BEExpressionValue() { Type = ExpressionValueType.Expression, Value = expression });
             }
             else if (node.NodeType == ExpressionType.Divide)
             {
                 Visit(node.Left);
                 Visit(node.Right);
                 BEExpression expression = CreateExpression(Operator.Divide);
-                expressionPairs.Push(new ExpressionHand() { IsField = false, Value = expression });
+                expressionPairs.Push(new BEExpressionValue() { Type = ExpressionValueType.Expression, Value = expression });
             }
             else if (node.NodeType == ExpressionType.Modulo)
             {
                 Visit(node.Left);
                 Visit(node.Right);
                 BEExpression expression = CreateExpression(Operator.Modulo);
-                expressionPairs.Push(new ExpressionHand() { IsField = false, Value = expression });
+                expressionPairs.Push(new BEExpressionValue() { Type = ExpressionValueType.Expression, Value = expression });
             }
             else if (node.NodeType == ExpressionType.Power)
             {
                 Visit(node.Left);
                 Visit(node.Right);
                 BEExpression expression = CreateExpression(Operator.Power);
-                expressionPairs.Push(new ExpressionHand() { IsField = false, Value = expression });
+                expressionPairs.Push(new BEExpressionValue() { Type = ExpressionValueType.Expression, Value = expression });
             }
             parentXExpressionType.Pop();
             return node;
@@ -342,7 +319,7 @@ namespace BE.Models
         protected override Expression VisitConstant(ConstantExpression node)
         {
 
-            expressionPairs.Push(new ExpressionHand() { Value = node.Value,IsField=false });
+            expressionPairs.Push(new BEExpressionValue() { Value = node.Value, Type = ExpressionValueType.Constant });
             return node;
         }
 
@@ -355,7 +332,7 @@ namespace BE.Models
             {
                 if (node.Expression.Type.Equals(type))
                 {
-                    expressionPairs.Push(new ExpressionHand() { Value = node.Member.Name, IsField = true });
+                    expressionPairs.Push(new BEExpressionValue() { Value = node.Member.Name, Type = ExpressionValueType.Field });
                 }
                 else
                 {
@@ -366,12 +343,12 @@ namespace BE.Models
 
                     var getter = getterLambda.Compile();
 
-                    expressionPairs.Push(new ExpressionHand { Value = getter(), IsField = false });
+                    expressionPairs.Push(new BEExpressionValue { Value = getter(), Type = ExpressionValueType.Constant });
                 }
             }
             else if (node.Expression.Type.Equals(type))
             {
-                expressionPairs.Push(new ExpressionHand() { Value = node.Member.Name, IsField = true });
+                expressionPairs.Push(new BEExpressionValue() { Value = node.Member.Name, Type = ExpressionValueType.Field });
             }
 
             return node;
@@ -385,7 +362,7 @@ namespace BE.Models
         {
             fieldName = name;
         }
-        public Condition Equals(object value)
+        public new Condition Equals(object value)
         {
             Condition condition = new Condition(fieldName, value, ConditionType.Equals);
             return condition;
@@ -426,11 +403,6 @@ namespace BE.Models
             Condition condition = new Condition(fieldName, value, ConditionType.NotIn);
             return condition;
         }
-    }
-    public class ExpressionHand
-    {
-        public object Value;
-        public bool IsField = false;
     }
     public delegate ConditionBase QueryableFunc(ConditionBuilder predicate);
 }

@@ -5,7 +5,6 @@ using UnityEngine;
 [Schema("users")]
 public class UserModel
 {
-    [ColumnIdentity()]
     public string id;
     public string name;
     public string email;
