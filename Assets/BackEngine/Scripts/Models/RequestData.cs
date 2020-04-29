@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace BE.Models
 {
@@ -43,7 +44,6 @@ namespace BE.Models
             Filters.AddRange(fieldNames.Split(','));
             return this;
         }
-
         /// <summary>
         /// Add Request Filter
         /// </summary>
@@ -90,9 +90,88 @@ namespace BE.Models
         }
 
     }
+
+    public class RequestData<T>:RequestData
+    {
+        
+        public RequestData()
+        {
+        }
+      
+        /// <summary>
+        /// Add Request Filter
+        /// </summary>
+        /// <param name="fieldNames">list name of fields want to get, split by "," </param>
+        public RequestData GetField(Expression<Func<T>> expression)
+        {
+            MemberInfo memberInfo;
+            if (expression.Body is UnaryExpression)
+            {
+                memberInfo = ((MemberExpression)((UnaryExpression)expression.Body).Operand).Member;
+            }
+            else
+            {
+                memberInfo = ((MemberExpression)expression.Body).Member;
+            }
+            if (memberInfo is PropertyInfo)
+            {
+                var propertyInfo = memberInfo as PropertyInfo;
+                if (Type.GetTypeCode(propertyInfo.PropertyType) == TypeCode.Object)
+                {
+                    throw new Exception("This is not a table field!");
+                }
+            }
+            else if (memberInfo is FieldInfo)
+            {
+                var propertyInfo = memberInfo as FieldInfo;
+                if (Type.GetTypeCode(propertyInfo.FieldType) == TypeCode.Object)
+                {
+                    throw new Exception("This is not a table field!");
+                }
+            }
+            string propertyName = memberInfo.Name;
+            GetFields(propertyName);
+            return this;
+        }
+        /// <summary>
+        /// Add Request Filter
+        /// </summary>
+        /// <param name="fieldNames">name of fields want to get the reference object, split by ","</param>
+        public RequestData GetRefs(Expression<Func<T>> expression)
+        {
+            MemberInfo memberInfo;
+            if (expression.Body is UnaryExpression)
+            {
+                memberInfo = ((MemberExpression)((UnaryExpression)expression.Body).Operand).Member;
+            }
+            else
+            {
+                memberInfo = ((MemberExpression)expression.Body).Member;
+            }
+            if (memberInfo is PropertyInfo)
+            {
+                var propertyInfo = memberInfo as PropertyInfo;
+                if (Type.GetTypeCode(propertyInfo.PropertyType) == TypeCode.Object)
+                {
+                    throw new Exception("This is not a table field!");
+                }
+            }
+            else if (memberInfo is FieldInfo)
+            {
+                var propertyInfo = memberInfo as FieldInfo;
+                if (Type.GetTypeCode(propertyInfo.FieldType) == TypeCode.Object)
+                {
+                    throw new Exception("This is not a table field!");
+                }
+            }
+            GetRefs(memberInfo.Name);
+            return this;
+        }
+
+    }
     public static class RequestHelper
     {
-        public static RequestData Where<T>(this RequestData source, Expression<Func<T, bool>> predicate) where T : class
+        public static RequestData Where<T>(this RequestData<T> source, Expression<Func<T, bool>> predicate) where T : class
         {
             var builder = new ConditionExpressionBulder<T>(predicate);
             var value = builder.ToCondition();
