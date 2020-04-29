@@ -176,6 +176,12 @@ namespace BE.Models
             base.Take(page, pageSize);
             return this;
         }
+        public RequestData<T> SetValue<P>(Expression<Func<T, P>> expression, object value)
+        {
+            string propertyName = GetMemberName(expression);
+            SetValue(propertyName, value);
+            return this;
+        }
         public RequestData Sort<P>(Expression<Func<T, P>> expression, SortType sortType=SortType.Asc)
         {
             string propertyName = GetMemberName(expression);
