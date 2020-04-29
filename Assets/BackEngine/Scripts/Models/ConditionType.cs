@@ -11,6 +11,6 @@
     /// In Array is In
     /// Not In Array is NotIn
     /// </summary>
-    public enum ConditionType { Greater, GreaterEquals, Lessthan, LessthanEquals, Equals, NotEquals, In, NotIn,And,Or }
+    public enum ConditionType { Greater, GreaterEquals, Lessthan, LessthanEquals, Equals, NotEquals, In, NotIn,And,Or,Expression }
 
 }

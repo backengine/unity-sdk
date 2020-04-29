@@ -80,7 +80,13 @@ namespace BE.Models
         public OrCondition(params ConditionBase[] conditions) : base(ConditionType.Or, conditions)
         {
         }
-
+    }
+    public class ExpressionCondition : ConditionBase
+    {
+        public ExpressionCondition(BEExpression expressions) : base(ConditionType.Expression)
+        {
+            Value = expressions;
+        }
     }
     public class ConditionBase
     {
@@ -156,15 +162,29 @@ namespace BE.Models
     }
     public class BEExpressionValue
     {
-        public BEExpressionValueType Type { get; set; }
+        public ExpressionValueType Type { get; set; }
         public object Value { get; set; }
-    }
-    public enum BEExpressionValueType
-    {
-        Expression,Field,Constant
     }
     public enum Operator
     {
-        Add, Subtract, Multiply,Divide,Modulo,Power
+        Add = 1,
+        Subtract = 2,
+        Multiply = 3,
+        Divide = 4,
+        Modulo = 5,
+        Power = 6,
+        Greater = 7,
+        GreaterEquals = 8,
+        Lessthan = 9,
+        LessthanEquals = 10,
+        Equals = 11,
+        NotEquals = 12,
+    }
+
+    public enum ExpressionValueType
+    {
+        Expression = 0,
+        Field = 1,
+        Constant = 2,
     }
 }
