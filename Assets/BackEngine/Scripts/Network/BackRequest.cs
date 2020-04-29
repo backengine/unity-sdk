@@ -44,19 +44,19 @@ namespace BE.NetWork
         private BackConfiguration backConfig;
 
         private string token;
-        public void Auth<T>(string schema, RequestData requestData, Action<bool, BackResponse<T>> callback = null) where T : class
+        public void Auth<T>(string schema, RequestData requestData, Action<bool, BackResponse<T>> callback = null) where T : BEModel
         {
             string data = Helper.GetRequestString("auth", schema, requestData);
             StartCoroutine(ProcessQuery(data, callback));
         }
-        public void Auth<T>(RequestData requestData, Action<bool, BackResponse<T>> callback = null) where T : class
+        public void Auth<T>(RequestData requestData, Action<bool, BackResponse<T>> callback = null) where T : BEModel
         {
             Type t = typeof(T);
             var schema = GetSchema(t);
             string data = Helper.GetRequestString("auth", schema, requestData);
             StartCoroutine(ProcessQuery(data, callback));
         }
-        public void Auth<T>(RequestData<T> requestData, Action<bool, BackResponse<T>> callback = null) where T : class
+        public void Auth<T>(RequestData<T> requestData, Action<bool, BackResponse<T>> callback = null) where T : BEModel
         {
             Type t = typeof(T);
             var schema = GetSchema(t);
@@ -77,12 +77,12 @@ namespace BE.NetWork
             }
             return schema;
         }
-        public void InsertAuth<T>(T o, Action<bool, BackResponse<T>> callback = null) where T : class
+        public void InsertAuth<T>(T o, Action<bool, BackResponse<T>> callback = null) where T : BEModel
         {
             var schema = GetSchema(typeof(T));
             InsertAuth(schema, o, callback);
         }
-        public void InsertAuth<T>(string schema, T o, Action<bool, BackResponse<T>> callback = null) where T : class
+        public void InsertAuth<T>(string schema, T o, Action<bool, BackResponse<T>> callback = null) where T : BEModel
         {
             Type t = o.GetType();
             RequestData requestData = new RequestData();
@@ -97,7 +97,7 @@ namespace BE.NetWork
         ///
         /// <param name="schema">Name of Schema need to query</param>
         /// <param name="requestData">Request Data Object</param>
-        public void SelectMany<T>(RequestData<T> requestData = null, Action<bool, BackResponse<List<T>>> callback = null) where T : class
+        public void SelectMany<T>(RequestData<T> requestData = null, Action<bool, BackResponse<List<T>>> callback = null) where T : BEModel
         {
             var schema = GetSchema(typeof(T));
             if (requestData != null)
@@ -123,7 +123,7 @@ namespace BE.NetWork
         ///
         /// <param name="schema">Name of Schema need to query</param>
         /// <param name="requestData">Request Data Object</param>
-        public void SelectMany<T>(Action<bool, BackResponse<List<T>>> callback = null) where T : class
+        public void SelectMany<T>(Action<bool, BackResponse<List<T>>> callback = null) where T : BEModel
         {
             SelectMany<T>(null, callback);
         }
@@ -143,9 +143,9 @@ namespace BE.NetWork
         /// </summary>
         ///
         /// <param name="requestData">Request Data Object</param>
-        public void SelectOne<T>(RequestData<T> requestData = null, Action<bool, BackResponse<T>> callback = null) where T : class
+        public void SelectOne<T>(RequestData<T> requestData = null, Action<bool, BackResponse<T>> callback = null) where T : BEModel
         {
-            var schema = GetSchema(typeof(T)); 
+            var schema = GetSchema(typeof(T));
             if (requestData != null)
             {
                 Helper.DefaultIncludeFields(requestData);
@@ -157,7 +157,7 @@ namespace BE.NetWork
         /// </summary>
         /// <param name="schema"></param>
         /// <param name="requestData">Request Data Object</param>
-        public void Insert<T>(string schema, RequestData requestData, Action<bool, BackResponse<T>> callback = null) where T : class
+        public void Insert<T>(string schema, RequestData requestData, Action<bool, BackResponse<T>> callback = null) where T : BEModel
         {
             string data = Helper.GetRequestString("insert", schema, requestData);
             StartCoroutine(ProcessQuery(data, callback));
@@ -199,7 +199,7 @@ namespace BE.NetWork
         /// Execute an update "schema" command with the filter condition of "conditions" and updateFields values
         /// </summary>
         /// <param name="requestData">Request Data Object</param>
-        public void UpdateMany<T>(RequestData<T> requestData, Action<bool, BackResponse<int>> callback = null) where T : class
+        public void UpdateMany<T>(RequestData<T> requestData, Action<bool, BackResponse<int>> callback = null) where T : BEModel
         {
             var schema = GetSchema(typeof(T));
             string data = Helper.GetRequestString("update", schema, requestData);
@@ -215,13 +215,23 @@ namespace BE.NetWork
             string data = Helper.GetRequestString("updateOne", schema, requestData);
             StartCoroutine(ProcessQuery(data, callback));
         }
-
+        /// <summary>
+        /// Excute a insert into "schema" command with the insertFields data
+        /// </summary>
+        /// <param name="o">The object related to table need to insert</param>
+        public void UpdateOne<T>(RequestData<T> requestData, Action<bool, BackResponse<T>> callback = null) where T : BEModel
+        {
+            Type t = typeof(T);
+            var schema = GetSchema(t);
+            string data = Helper.GetRequestString("updateOne", schema, requestData);
+            StartCoroutine(ProcessQuery(data, callback));
+        }
 
         /// <summary>
         /// Excute a insert into "schema" command with the insertFields data
         /// </summary>
         /// <param name="o">The object related to table need to insert</param>
-        public void UpdateOne<T>(T o, Action<bool, BackResponse<T>> callback = null) where T : class
+        public void UpdateOne<T>(T o, Action<bool, BackResponse<T>> callback = null) where T : BEModel
         {
             Type t = o.GetType();
             RequestData requestData = new RequestData();
@@ -249,7 +259,7 @@ namespace BE.NetWork
         /// Execute a delete command in "schema" with the filter condition of "conditions"
         /// </summary>
         /// <param name="requestData">Request Data Object</param>
-        public void DeleteMany<T>(RequestData<T> requestData, Action<bool, BackResponse<int>> callback = null) where T : class
+        public void DeleteMany<T>(RequestData<T> requestData, Action<bool, BackResponse<int>> callback = null) where T : BEModel
         {
             string schema = GetSchema(typeof(T));
             string data = Helper.GetRequestString("delete", schema, requestData);
@@ -270,7 +280,7 @@ namespace BE.NetWork
         /// </summary>
         /// <param name="schema"></param>
         /// <param name="requestData">Request Data Object</param>
-        public void DeleteOne<T>(T o, Action<bool, BackResponse<int>> callback = null)
+        public void DeleteOne<T>(T o, Action<bool, BackResponse<int>> callback = null) where T : BEModel
         {
             RequestData request = new RequestData();
             Type t = o.GetType();
@@ -359,7 +369,7 @@ namespace BE.NetWork
 
 
     }
-   
+
     public class BackResponse : BackResponse<object>
     {
 

@@ -1,11 +1,11 @@
-﻿using System.Collections;
+﻿using BE.Models;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 [Schema("users")]
-public class UserModel
+public class UserModel : BEModel
 {
-    public string id;
     public string name;
     public string email;
     public string password;

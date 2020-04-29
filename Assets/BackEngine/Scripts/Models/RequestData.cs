@@ -91,7 +91,7 @@ namespace BE.Models
 
     }
 
-    public class RequestData<T>: RequestData where T : class
+    public class RequestData<T>: RequestData where T : BEModel
     {
         
         public RequestData()

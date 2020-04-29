@@ -1,11 +1,11 @@
-﻿using System.Collections;
+﻿using BE.Models;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 [Schema("score")]
-public class ScoreModel
+public class ScoreModel: BEModel
 {
-    public string id;
     public string user;
     public UserModel userRefs;
     public int score;

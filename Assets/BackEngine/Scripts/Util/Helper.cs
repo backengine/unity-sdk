@@ -472,9 +472,9 @@ namespace BE.Util
             builder.Append(string.Join(",", list.ToArray()));
             builder.Append("}");
         }
-        internal static void DefaultIncludeFields<T>(RequestData<T> request) where T : class
+        internal static void DefaultIncludeFields<T>(RequestData<T> request) where T : BEModel
         {
-            if (request.Filters!=null&&request.Filters.Count > 0)
+            if (request.Filters != null && request.Filters.Count > 0)
             {
                 for (var i = 0; i < request.Filters.Count; i++)
                 {
@@ -525,7 +525,6 @@ namespace BE.Util
                         request.GetFields(arrayName);
                     }
                 }
-
             }
         }
         public static string ToJson(this object value)
