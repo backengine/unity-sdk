@@ -34,12 +34,9 @@ namespace BE.Demo
         public void RequestScores()
         {
             Manager.ShowLoading();
-            RequestData requestData = new RequestData();
-            requestData.GetFields("score,user").GetRefs("user").Sort("score", SortType.Desc);
-            //List<string> ids = new List<string>();
-            //ids.Add(Manager.User.id);
-            //requestData.AddCondition("user", ids, ConditionType.In);
-            BERequest.Instance.SelectMany<ScoreModel>("score", requestData, (error, response) => {
+            var requestData = new RequestData<ScoreModel>();
+            requestData.GetField(x=>x.score).GetRefs(x=>x.user).Sort(x=>x.score, SortType.Desc);
+            BERequest.Instance.SelectMany(requestData, (error, response) => {
                 Manager.HideLoading();
                 if (!error)
                 {

@@ -82,7 +82,7 @@ namespace BE.Models
             return this;
         }
 
-        public RequestData Sort(string fieldName, SortType sortType)
+        public RequestData Sort(string fieldName,  SortType sortType = SortType.Asc)
         {
             if (Sorts == null) Sorts = new Dictionary<string, SortType>();
             Sorts.Add(fieldName, sortType);
@@ -116,7 +116,13 @@ namespace BE.Models
         /// Add Request Filter
         /// </summary>
         /// <param name="fieldNames">list name of fields want to get, split by "," </param>
-        public RequestData<T> GetField(Expression<Func<T>> expression)
+        public RequestData<T> GetField<P>(Expression<Func<T,P>> expression)
+        {
+            string propertyName = GetMemberName(expression);
+            GetFields(propertyName);
+            return this;
+        }
+        private string GetMemberName<P>(Expression<Func<T, P>> expression)
         {
             MemberInfo memberInfo;
             if (expression.Body is UnaryExpression)
@@ -143,48 +149,29 @@ namespace BE.Models
                     throw new Exception("This is not a table field!");
                 }
             }
-            string propertyName = memberInfo.Name;
-            GetFields(propertyName);
-            return this;
+            var attr = memberInfo.GetCustomAttribute(typeof(ColumnAttribute));
+            if (attr != null)
+            {
+                return ((ColumnAttribute)attr).Name;
+            }
+            return memberInfo.Name;
         }
         /// <summary>
         /// Add Request Filter
         /// </summary>
         /// <param name="fieldNames">name of fields want to get the reference object, split by ","</param>
-        public RequestData<T> GetRefs(Expression<Func<T>> expression)
+        public RequestData<T> GetRefs<P>(Expression<Func<T,P>> expression)
         {
-            MemberInfo memberInfo;
-            if (expression.Body is UnaryExpression)
-            {
-                memberInfo = ((MemberExpression)((UnaryExpression)expression.Body).Operand).Member;
-            }
-            else
-            {
-                memberInfo = ((MemberExpression)expression.Body).Member;
-            }
-            if (memberInfo is PropertyInfo)
-            {
-                var propertyInfo = memberInfo as PropertyInfo;
-                if (Type.GetTypeCode(propertyInfo.PropertyType) == TypeCode.Object)
-                {
-                    throw new Exception("This is not a table field!");
-                }
-            }
-            else if (memberInfo is FieldInfo)
-            {
-                var propertyInfo = memberInfo as FieldInfo;
-                if (Type.GetTypeCode(propertyInfo.FieldType) == TypeCode.Object)
-                {
-                    throw new Exception("This is not a table field!");
-                }
-            }
-            GetRefs(memberInfo.Name);
+            string propertyName = GetMemberName(expression);
+            GetRefs(propertyName);
+            return this;
+        }
+        public RequestData Sort<P>(Expression<Func<T, P>> expression, SortType sortType=SortType.Asc)
+        {
+            string propertyName = GetMemberName(expression);
+            Sort(propertyName, sortType);
             return this;
         }
 
     }
-    //public static class RequestHelper
-    //{
-     
-    //}
 }

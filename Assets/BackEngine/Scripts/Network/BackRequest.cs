@@ -44,14 +44,27 @@ namespace BE.NetWork
         private BackConfiguration backConfig;
 
         private string token;
-        public void Auth<T>(string schema, RequestData requestData, Action<bool, BackResponse<T>> callback = null)
+        public void Auth<T>(string schema, RequestData requestData, Action<bool, BackResponse<T>> callback = null) where T : class
         {
             string data = Helper.GetRequestString("auth", schema, requestData);
             StartCoroutine(ProcessQuery(data, callback));
         }
-        public void Auth<T>( RequestData requestData, Action<bool, BackResponse<T>> callback = null)
+        public void Auth<T>(RequestData requestData, Action<bool, BackResponse<T>> callback = null) where T : class
         {
             Type t = typeof(T);
+            var schema = GetSchema(t);
+            string data = Helper.GetRequestString("auth", schema, requestData);
+            StartCoroutine(ProcessQuery(data, callback));
+        }
+        public void Auth<T>(RequestData<T> requestData, Action<bool, BackResponse<T>> callback = null) where T : class
+        {
+            Type t = typeof(T);
+            var schema = GetSchema(t);
+            string data = Helper.GetRequestString("auth", schema, requestData);
+            StartCoroutine(ProcessQuery(data, callback));
+        }
+        protected string GetSchema(Type t)
+        {
             var attr = t.GetCustomAttribute(typeof(SchemaAttribute));
             var schema = "";
             if (attr != null)
@@ -62,40 +75,18 @@ namespace BE.NetWork
             {
                 schema = t.Name;
             }
-            string data = Helper.GetRequestString("auth", schema, requestData);
-            StartCoroutine(ProcessQuery(data, callback));
+            return schema;
         }
-        public void Auth<T>(RequestData<T> requestData, Action<bool, BackResponse<T>> callback = null) where T:class
+        public void InsertAuth<T>(T o, Action<bool, BackResponse<T>> callback = null) where T : class
         {
-            Type t = typeof(T);
-            var attr = t.GetCustomAttribute(typeof(SchemaAttribute));
-            var schema = "";
-            if (attr != null)
-            {
-                schema = ((SchemaAttribute)attr).Name;
-            }
-            else
-            {
-                schema = t.Name;
-            }
-            string data = Helper.GetRequestString("auth", schema, requestData);
-            StartCoroutine(ProcessQuery(data, callback));
+            var schema = GetSchema(typeof(T));
+            InsertAuth(schema, o, callback);
         }
-        public void InsertAuth<T>(T o, Action<bool, BackResponse<T>> callback = null)
+        public void InsertAuth<T>(string schema, T o, Action<bool, BackResponse<T>> callback = null) where T : class
         {
             Type t = o.GetType();
             RequestData requestData = new RequestData();
             Helper.SetValueRequest(t, o, requestData);
-            var attr = t.GetCustomAttribute(typeof(SchemaAttribute));
-            var schema = "";
-            if (attr != null)
-            {
-                schema = ((SchemaAttribute)attr).Name;
-            }
-            else
-            {
-                schema = t.Name;
-            }
             string data = Helper.GetRequestString("insertAuth", schema, requestData);
             StartCoroutine(ProcessQuery(data, callback));
         }
@@ -106,7 +97,18 @@ namespace BE.NetWork
         ///
         /// <param name="schema">Name of Schema need to query</param>
         /// <param name="requestData">Request Data Object</param>
-        public void SelectMany<T>(string schema, RequestData requestData = null, Action<bool, BackResponse<List<T>>> callback = null)
+        public void SelectMany<T>(RequestData<T> requestData = null, Action<bool, BackResponse<List<T>>> callback = null) where T : class
+        {
+            var schema = GetSchema(typeof(T));
+            SelectMany(schema, requestData, callback);
+        }
+        /// <summary>
+        /// Execute a select "schema" command with the filter condition of "conditions"
+        /// </summary>
+        ///
+        /// <param name="schema">Name of Schema need to query</param>
+        /// <param name="requestData">Request Data Object</param>
+        public void SelectMany<T>(string schema, RequestData requestData = null, Action<bool, BackResponse<List<T>>> callback = null) where T : class
         {
             string data = Helper.GetRequestString("select", schema, requestData);
             StartCoroutine(ProcessQuery(data, callback));
@@ -118,17 +120,27 @@ namespace BE.NetWork
         ///
         /// <param name="schema">Name of Schema need to query</param>
         /// <param name="requestData">Request Data Object</param>
-        public void SelectOne<T>(string schema, RequestData requestData = null, Action<bool, BackResponse<T>> callback = null)
+        public void SelectOne<T>(string schema, RequestData requestData = null, Action<bool, BackResponse<T>> callback = null) where T : class
         {
             string data = Helper.GetRequestString("selectOne", schema, requestData);
             StartCoroutine(ProcessQuery<T>(data, callback));
+        }
+        /// <summary>
+        /// Execute a select one document command with the filter condition of "conditions", the return is random if there are more than one documents
+        /// </summary>
+        ///
+        /// <param name="requestData">Request Data Object</param>
+        public void SelectOne<T>(RequestData<T> requestData = null, Action<bool, BackResponse<T>> callback = null) where T : class
+        {
+            var schema = GetSchema(typeof(T));
+            SelectOne(schema, requestData, callback);
         }
         /// <summary>
         /// Excute a insert into "schema" command with the insertFields data
         /// </summary>
         /// <param name="schema"></param>
         /// <param name="requestData">Request Data Object</param>
-        public void Insert<T>(string schema, RequestData requestData, Action<bool, BackResponse<T>> callback = null)
+        public void Insert<T>(string schema, RequestData requestData, Action<bool, BackResponse<T>> callback = null) where T : class
         {
             string data = Helper.GetRequestString("insert", schema, requestData);
             StartCoroutine(ProcessQuery(data, callback));
@@ -137,14 +149,14 @@ namespace BE.NetWork
         /// Excute a insert into "schema" command with the insertFields data
         /// </summary>
         /// <param name="o">The object related to table need to insert</param>
-        public void Insert<T>(T o, Action<bool, BackResponse<T>> callback = null)
+        public void Insert<T>(T o, Action<bool, BackResponse<T>> callback = null) where T : class
         {
             Type t = o.GetType();
             RequestData requestData = new RequestData();
             Helper.SetValueRequest(t, o, requestData);
             var attr = t.GetCustomAttribute(typeof(SchemaAttribute));
             var schema = "";
-            if (attr!=null)
+            if (attr != null)
             {
                 schema = ((SchemaAttribute)attr).Name;
             }
@@ -161,13 +173,21 @@ namespace BE.NetWork
         /// </summary>
         /// <param name="schema"></param>
         /// <param name="requestData">Request Data Object</param>
-        public void UpdateMany(string schema, RequestData requestData, Action<bool, BackResponse<bool>> callback = null)
+        public void UpdateMany(string schema, RequestData requestData, Action<bool, BackResponse<int>> callback = null)
         {
             string data = Helper.GetRequestString("update", schema, requestData);
             StartCoroutine(ProcessQuery(data, callback));
         }
-
-
+        /// <summary>
+        /// Execute an update "schema" command with the filter condition of "conditions" and updateFields values
+        /// </summary>
+        /// <param name="requestData">Request Data Object</param>
+        public void UpdateMany<T>(RequestData<T> requestData, Action<bool, BackResponse<int>> callback = null) where T : class
+        {
+            var schema = GetSchema(typeof(T));
+            string data = Helper.GetRequestString("update", schema, requestData);
+            StartCoroutine(ProcessQuery(data, callback));
+        }
         /// <summary>
         /// Execute an update "schema" command with the filter condition of "conditions" and updateFields values
         /// </summary>
@@ -184,11 +204,11 @@ namespace BE.NetWork
         /// Excute a insert into "schema" command with the insertFields data
         /// </summary>
         /// <param name="o">The object related to table need to insert</param>
-        public void UpdateOne<T>(T o, Action<bool, BackResponse<T>> callback = null)
+        public void UpdateOne<T>(T o, Action<bool, BackResponse<T>> callback = null) where T : class
         {
             Type t = o.GetType();
             RequestData requestData = new RequestData();
-            Helper.SetValueRequest(t, o, requestData,true);
+            Helper.SetValueRequest(t, o, requestData, true);
             Helper.MakeWhereIdentityRequest(t, o, requestData);
             var attr = t.GetCustomAttribute(typeof(SchemaAttribute));
             var schema = "";
@@ -220,18 +240,28 @@ namespace BE.NetWork
         /// <summary>
         /// Execute a delete command in "schema" with the filter condition of "conditions"
         /// </summary>
+        /// <param name="requestData">Request Data Object</param>
+        public void DeleteMany<T>(RequestData<T> requestData, Action<bool, BackResponse<int>> callback = null) where T : class
+        {
+            string schema = GetSchema(typeof(T));
+            string data = Helper.GetRequestString("delete", schema, requestData);
+            StartCoroutine(ProcessQuery(data, callback));
+        }
+        /// <summary>
+        /// Execute a delete command in "schema" with the filter condition of "conditions"
+        /// </summary>
         /// <param name="schema"></param>
         /// <param name="requestData">Request Data Object</param>
         public void DeleteOne(string schema, RequestData requestData, Action<bool, BackResponse<int>> callback = null)
         {
             string data = Helper.GetRequestString("deleteOne", schema, requestData);
             StartCoroutine(ProcessQuery(data, callback));
-        } 
+        }
         /// <summary>
-          /// Execute a delete command in "schema" with the filter condition of "conditions"
-          /// </summary>
-          /// <param name="schema"></param>
-          /// <param name="requestData">Request Data Object</param>
+        /// Execute a delete command in "schema" with the filter condition of "conditions"
+        /// </summary>
+        /// <param name="schema"></param>
+        /// <param name="requestData">Request Data Object</param>
         public void DeleteOne<T>(T o, Action<bool, BackResponse<int>> callback = null)
         {
             RequestData request = new RequestData();
@@ -321,6 +351,7 @@ namespace BE.NetWork
 
 
     }
+   
     public class BackResponse : BackResponse<object>
     {
 
