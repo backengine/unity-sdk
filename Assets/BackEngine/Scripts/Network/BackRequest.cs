@@ -44,6 +44,12 @@ namespace BE.NetWork
         private BackConfiguration backConfig;
 
         private string token;
+
+        private void Start()
+        {
+            startSession();
+        }
+
         public void Auth<T>(string schema, RequestData requestData, Action<bool, BackResponse<T>> callback = null) where T : BEModel
         {
             string data = Helper.GetRequestString("auth", schema, requestData);
@@ -300,6 +306,14 @@ namespace BE.NetWork
             StartCoroutine(ProcessQuery(data, callback));
         }
 
+        void startSession()
+        {
+            BELog log = new BELog();
+            var requestData = new RequestData();
+            Helper.SetValueRequest(typeof(BELog), log, requestData, true);
+            string data = Helper.GetRequestString("startSession", null, requestData);
+            StartCoroutine(ProcessQuery<BELog>(data, null));
+        }
 
         /// <summary>
         /// Process request query
