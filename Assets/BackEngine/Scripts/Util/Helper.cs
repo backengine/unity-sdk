@@ -491,6 +491,7 @@ namespace BE.Util
                 var properties = type.GetProperties();
                 for (int i = 0; i < properties.Length; i++)
                 {
+                    if (Type.GetTypeCode(properties[i].PropertyType) == TypeCode.Object) continue;
                     var notMap = properties[i].GetCustomAttribute(notMappedType);
                     if (notMap != null)
                     {
@@ -507,6 +508,7 @@ namespace BE.Util
                 var fields = type.GetFields(BindingFlags.Public);
                 for (int i = 0; i < fields.Length; i++)
                 {
+                    if (Type.GetTypeCode(fields[i].FieldType) == TypeCode.Object) continue;
                     if (!fields[i].IsPrivate && !listFields.Contains(fields[i].Name.ToLower()))
                     {
                         var notMap = fields[i].GetCustomAttribute(notMappedType);
