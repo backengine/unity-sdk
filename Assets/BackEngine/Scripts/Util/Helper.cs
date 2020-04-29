@@ -556,10 +556,6 @@ namespace BE.Util
                                 }
                                 arrayName[0] = arrayName[0].ToString().ToLower()[0];
                                 string propertyName = new string(arrayName);
-                                if (propertyName == "left")
-                                {
-                                    string st = "";
-                                }
                                 list.Add("\"" + propertyName + "\":" + propertyValue.ToJson());
                                 listFields.Add(propertyName.ToLower());
                             }
@@ -599,7 +595,6 @@ namespace BE.Util
         public static void MakeWhereIdentityRequest(Type type, object o, RequestData request)
         {
             var attributeType = typeof(ColumnAttribute);
-            var attributeIdType = typeof(ColumnIdentityAttribute);
             List<string> listKeys = new List<string>();
             var properties = type.GetProperties();
             foreach (var p in properties)
@@ -622,19 +617,17 @@ namespace BE.Util
                     case TypeCode.Char:
                     case TypeCode.String:
                     case TypeCode.DateTime:
-                        var attrid = p.GetCustomAttribute(attributeIdType);
-                        if (attrid != null)
+                        var attr = p.GetCustomAttribute(attributeType);
+                        var name = p.Name;
+                        if (attr != null)
                         {
-                            var attr = p.GetCustomAttribute(attributeType);
-                            var name = p.Name;
-                            if (attr != null)
-                            {
-                                name = ((ColumnAttribute)attr).Name;
-                            }
+                            name = ((ColumnAttribute)attr).Name;
+                        }
+                        if (name.ToLower() == "id")
+                        {
                             listKeys.Add(name.ToLower());
                             object value = p.GetValue(o);
-                            request.Where(x=>x[name].Equals( value));
-                            continue;
+                            request.Where(x => x[name].Equals(value));
                         }
                         break;
                 }
@@ -662,19 +655,17 @@ namespace BE.Util
                         case TypeCode.Char:
                         case TypeCode.String:
                         case TypeCode.DateTime:
-                            var attrid = p.GetCustomAttribute(attributeIdType);
-                            if (attrid != null)
+                            var attr = p.GetCustomAttribute(attributeType);
+                            var name = p.Name;
+                            if (attr != null)
                             {
-                                var attr = p.GetCustomAttribute(attributeType);
-                                var name = p.Name;
-                                if (attr != null)
-                                {
-                                    name = ((ColumnAttribute)attr).Name;
-                                }
+                                name = ((ColumnAttribute)attr).Name;
+                            }
+                            if (name.ToLower() == "id")
+                            {
                                 listKeys.Add(name.ToLower());
                                 object value = p.GetValue(o);
                                 request.Where(x => x[name].Equals(value));
-                                continue;
                             }
                             break;
                     }
@@ -684,7 +675,6 @@ namespace BE.Util
         public static void SetValueRequest(Type type, object o, RequestData request, bool ignoreId = false)
         {
             var attributeType = typeof(ColumnAttribute);
-            var attributeIdType = typeof(ColumnIdentityAttribute);
             List<string> listKeys = new List<string>();
             var properties = type.GetProperties();
             foreach (var p in properties)
@@ -707,19 +697,16 @@ namespace BE.Util
                     case TypeCode.Char:
                     case TypeCode.String:
                     case TypeCode.DateTime:
-                        if (ignoreId)
-                        {
-                            var attrid = p.GetCustomAttribute(attributeIdType);
-                            if (attrid != null)
-                            {
-                                continue;
-                            }
-                        }
+                        
                         var attr = p.GetCustomAttribute(attributeType);
                         var name = p.Name;
                         if (attr != null)
                         {
                             name = ((ColumnAttribute)attr).Name;
+                        }
+                        if (ignoreId && name.ToLower() == "id")
+                        {
+                            continue;
                         }
                         listKeys.Add(name.ToLower());
                         object value = p.GetValue(o);
@@ -750,19 +737,15 @@ namespace BE.Util
                         case TypeCode.Char:
                         case TypeCode.String:
                         case TypeCode.DateTime:
-                            if (ignoreId)
-                            {
-                                var attrid = p.GetCustomAttribute(attributeIdType);
-                                if (attrid != null)
-                                {
-                                    continue;
-                                }
-                            }
                             var attr = p.GetCustomAttribute(attributeType);
                             var name = p.Name;
                             if (attr != null)
                             {
                                 name = ((ColumnAttribute)attr).Name;
+                            }
+                            if (ignoreId&& name.ToLower()=="id")
+                            {
+                                continue;
                             }
                             listKeys.Add(name.ToLower());
                             object value = p.GetValue(o);
@@ -882,12 +865,6 @@ namespace BE.Util
     }
 }
 
-public class ColumnIdentityAttribute : Attribute
-{
-    public ColumnIdentityAttribute()
-    {
-    }
-}
 public class ColumnAttribute : Attribute
 {
     private string _Name;
