@@ -30,11 +30,19 @@ namespace BE.Models
         }
         Stack<ConditionBase> currentNodes = new Stack<ConditionBase>();
         Stack<ExpressionType> parentXExpressionType = new Stack<ExpressionType>();
+        ExpressionType lastExpressionType;
         ConditionBase condition;
         Stack<BEExpressionValue> expressionPairs = new Stack<BEExpressionValue>();
         public ConditionBase ToCondition()
         {
             Visit(predicate.Body);
+            if (condition == null && expressionPairs.Count > 0)
+            {
+                if (predicate.Body.NodeType == ExpressionType.Call)
+                {
+                    MakeCallExpression(predicate.Body);
+                }
+            }
             return condition;
         }
         protected override Expression VisitUnary(UnaryExpression node)
@@ -52,39 +60,86 @@ namespace BE.Models
             {
                 if (expressionPairs.Count > 0)
                 {
+                    MethodCallExpression call=(MethodCallExpression)expression;
                     var v1 = expressionPairs.Pop();
                     var v2 = expressionPairs.Pop();
-                    var etype1 = v1.GetType();
-                    var etype2 = v2.GetType();
-                    if (etype1.IsGenericType && etype1.GetGenericTypeDefinition() == typeof(List<>))
+                    var etype1 = v1.Value.GetType();
+                    var etype2 = v2.Value.GetType();
+                    if (call.Method.Name.Equals("Contains"))
                     {
-                        string fieldName = v2.ToString();
-                        object value = v1;
-                        Condition c = new Condition(fieldName, value, parentXExpressionType.Count > 0 && parentXExpressionType.Peek() != ExpressionType.Not ? ConditionType.In : ConditionType.NotIn);
-                        if (condition == null)
+                        if (v2.Type==ExpressionValueType.Field && etype1.IsGenericType && etype1.GetGenericTypeDefinition() == typeof(List<>))
                         {
-                            condition = c;
+                            string fieldName = v2.ToString();
+                            object value = v1;
+                            Condition c = new Condition(fieldName, value, parentXExpressionType.Count == 0 || parentXExpressionType.Peek() != ExpressionType.Not ? ConditionType.In : ConditionType.NotIn);
+                            if (condition == null)
+                            {
+                                condition = c;
+                            }
+                            if (currentNodes.Count > 0)
+                            {
+                                ((ConditionGroup)currentNodes.Peek()).Add(c);
+                            }
+                            return;
                         }
-                        if (currentNodes.Count > 0)
+                        if (v1.Type == ExpressionValueType.Field && etype2.IsGenericType && etype2.GetGenericTypeDefinition() == typeof(List<>))
                         {
-                            ((ConditionGroup)currentNodes.Peek()).Add(c);
+                            string fieldName = v1.ToString();
+                            object value = v2;
+                            Condition c = new Condition(fieldName, value, parentXExpressionType.Count ==0 || parentXExpressionType.Peek() != ExpressionType.Not ? ConditionType.In : ConditionType.NotIn);
+                            if (condition == null)
+                            {
+                                condition = c;
+                            }
+                            if (currentNodes.Count > 0)
+                            {
+                                ((ConditionGroup)currentNodes.Peek()).Add(c);
+                            }
+                            return;
                         }
-                        return;
                     }
-                    if (etype2.IsGenericType && etype2.GetGenericTypeDefinition() == typeof(List<>))
+                    else if (call.Method.Name.Equals("Equals"))
                     {
-                        string fieldName = v1.ToString();
-                        object value = v2;
-                        Condition c = new Condition(fieldName, value, parentXExpressionType.Count > 0 && parentXExpressionType.Peek() != ExpressionType.Not ? ConditionType.In : ConditionType.NotIn);
-                        if (condition == null)
+                        if (v1.Type == ExpressionValueType.Field&&v1.Type == ExpressionValueType.Field)
                         {
-                            condition = c;
+                            ExpressionCondition c = new ExpressionCondition(
+                                new BEExpression(
+                                    new BEExpressionValue() {Value=v1.Value,Type=ExpressionValueType.Field},
+                                    new BEExpressionValue() { Value=v2.Value,Type=ExpressionValueType.Field },
+                                    Operator.Equals));
+                            if (condition == null)
+                            {
+                                condition = c;
+                            }
+                            if (currentNodes.Count > 0)
+                            {
+                                ((ConditionGroup)currentNodes.Peek()).Add(c);
+                            }
                         }
-                        if (currentNodes.Count > 0)
+                        else if (v1.Type == ExpressionValueType.Field)
                         {
-                            ((ConditionGroup)currentNodes.Peek()).Add(c);
+                            Condition c = new Condition(v1.Value.ToString(), v2.Value, parentXExpressionType.Count == 0 || parentXExpressionType.Peek() != ExpressionType.Not ? ConditionType.Equals : ConditionType.NotEquals);
+                            if (condition == null)
+                            {
+                                condition = c;
+                            }
+                            if (currentNodes.Count > 0)
+                            {
+                                ((ConditionGroup)currentNodes.Peek()).Add(c);
+                            }
                         }
-                        return;
+                        else if (v2.Type == ExpressionValueType.Field)
+                        {
+                            Condition c = new Condition(v2.Value.ToString(), v1.Value, parentXExpressionType.Count == 0 || parentXExpressionType.Peek() != ExpressionType.Not ? ConditionType.Equals : ConditionType.NotEquals);
+                            if (condition == null)
+                            {
+                                condition = c;
+                            }
+                            if (currentNodes.Count > 0)
+                            {
+                                ((ConditionGroup)currentNodes.Peek()).Add(c);
+                            }
+                        }
                     }
                 }
             }
@@ -312,7 +367,7 @@ namespace BE.Models
                 BEExpression expression = CreateExpression(Operator.Power);
                 expressionPairs.Push(new BEExpressionValue() { Type = ExpressionValueType.Expression, Value = expression });
             }
-            parentXExpressionType.Pop();
+            lastExpressionType=parentXExpressionType.Pop();
             return node;
         }
 
