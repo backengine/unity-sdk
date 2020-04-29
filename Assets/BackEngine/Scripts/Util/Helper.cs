@@ -757,6 +757,10 @@ namespace BE.Util
         }
         public static string GetRequestString(string query, string schema, RequestData requestData = null)
         {
+            if (requestData == null)
+            {
+                requestData = new RequestData();
+            }
             string json = "{\"query\":\"" + query + "\",\"schema\":\"" + schema + "\",\"data\":";
             json += requestData.ToJson();
             json += "}";
