@@ -20,20 +20,10 @@ namespace BE.Demo
             {
                 Manager.ShowLoading();
                 var requestData = new RequestData<UserModel>();
-                var st =20.23f;
-                int score = Mathf.RoundToInt(st);
-                string deviceId = "123435465656";
-                requestData = requestData.Where(user => user.deviceId == deviceId).SetValue(user => user.score, score);
-                BERequest.Instance.UpdateOne(requestData, (error, response) =>
-                {
-
-                });
-
 
                requestData =requestData.Where(
                     x => (x.email==Email.text) && (x.password== Password.text)
                 );
-                requestData.SetValue(x => x.email , "bongvd");
                 BERequest.Instance.Auth(requestData, (error, response) =>
                 {
                     if (!error)

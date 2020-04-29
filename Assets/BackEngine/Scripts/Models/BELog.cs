@@ -4,7 +4,7 @@ using System.Collections;
 namespace BE.Models
 {
 
-    public class BELog
+    public class BELog : BEModel
     {
         public string deviceId;
         public string deviceModel;
