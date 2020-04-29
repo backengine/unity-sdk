@@ -113,7 +113,16 @@ namespace BE.NetWork
             string data = Helper.GetRequestString("select", schema, requestData);
             StartCoroutine(ProcessQuery(data, callback));
         }
-
+        /// <summary>
+        /// Execute a select "schema" command with the filter condition of "conditions"
+        /// </summary>
+        ///
+        /// <param name="schema">Name of Schema need to query</param>
+        /// <param name="requestData">Request Data Object</param>
+        public void SelectMany<T>(Action<bool, BackResponse<List<T>>> callback = null) where T : class
+        {
+            SelectMany(null, callback);
+        }
         /// <summary>
         /// Execute a select one document command with the filter condition of "conditions", the return is random if there are more than one documents
         /// </summary>
