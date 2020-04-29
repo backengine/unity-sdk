@@ -166,6 +166,16 @@ namespace BE.Models
             GetRefs(propertyName);
             return this;
         }
+        /// <summary>
+        /// Set page and pageSize for select request
+        /// </summary>
+        /// <param name="page">page number</param>
+        /// <param name="pageSize">page size</param>
+        public new RequestData<T> Take(int page, int pageSize)
+        {
+            base.Take(page, pageSize);
+            return this;
+        }
         public RequestData Sort<P>(Expression<Func<T, P>> expression, SortType sortType=SortType.Asc)
         {
             string propertyName = GetMemberName(expression);
