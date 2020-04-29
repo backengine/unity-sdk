@@ -371,7 +371,7 @@ namespace BE.NetWork
                         token = backResponse.token;
                     }
                 }
-                callback(backResponse.isError, backResponse);
+                callback?.Invoke(backResponse.isError, backResponse);
             }
         }
 
