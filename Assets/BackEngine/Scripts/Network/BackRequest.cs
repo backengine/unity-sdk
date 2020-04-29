@@ -81,11 +81,6 @@ namespace BE.NetWork
             string data = Helper.GetRequestString("auth", schema, requestData);
             StartCoroutine(ProcessQuery(data, callback));
         }
-        public void Auth<T>(string schema, RequestData requestData, Action<bool, BackResponse<T>> callback = null)
-        {
-            string data = Helper.GetRequestString("insertAuth", schema, requestData);
-            StartCoroutine(ProcessQuery(data, callback));
-        }
         public void InsertAuth<T>(T o, Action<bool, BackResponse<T>> callback = null)
         {
             Type t = o.GetType();
