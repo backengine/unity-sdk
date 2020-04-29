@@ -166,6 +166,7 @@ namespace BE.Models
             GetRefs(propertyName);
             return this;
         }
+        
         /// <summary>
         /// Set page and pageSize for select request
         /// </summary>
@@ -188,6 +189,6 @@ namespace BE.Models
             Sort(propertyName, sortType);
             return this;
         }
-
+       
     }
 }

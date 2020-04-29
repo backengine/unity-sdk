@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text;
 using BE.Models;
 
 namespace BE.Util
@@ -177,8 +178,14 @@ namespace BE.Util
                     var listToken = ParseObject(json.Substring(1, json.Length - 2), true);
                     var properties = type.GetProperties();
                     var jsonNameType = typeof(JsonNameAttribute);
+                    var attributeNotMappedType = typeof(NotMappedAttribute);
                     foreach (var p in properties)
                     {
+                        var notMap = p.GetCustomAttribute(attributeNotMappedType);
+                        if (notMap != null)
+                        {
+                            continue;
+                        }
                         var attr = p.GetCustomAttribute(jsonNameType);
                         string key = p.Name.ToLower();
                         if (attr != null)
@@ -196,6 +203,11 @@ namespace BE.Util
                     {
                         if (!field.IsPrivate)
                         {
+                            var notMap = field.GetCustomAttribute(attributeNotMappedType);
+                            if (notMap != null)
+                            {
+                                continue;
+                            }
                             var attr = field.GetCustomAttribute(jsonNameType);
                             string key = field.Name.ToLower();
                             if (attr != null)
@@ -402,7 +414,118 @@ namespace BE.Util
             object value = GetValue(json, type);
             return (T)Convert.ChangeType(value, type);
         }
+        private static void WriteObject(Type type, object value, StringBuilder builder)
+        {
+            builder.Append("{");
+            List<string> list = new List<string>();
+            List<string> listFields = new List<string>();
+            var jsonNameType = typeof(JsonNameAttribute);
+            var notMappedType = typeof(NotMappedAttribute);
+            var properties = type.GetProperties();
+            for (int i = 0; i < properties.Length; i++)
+            {
+                var notMap = properties[i].GetCustomAttribute(notMappedType);
+                if (notMap != null)
+                {
+                    continue;
+                }
+                var propertyValue = properties[i].GetValue(value);
+                if (propertyValue != null)
+                {
+                    var arrayName = properties[i].Name.ToCharArray();
+                    var attr = properties[i].GetCustomAttribute(jsonNameType);
+                    if (attr != null)
+                    {
+                        arrayName = ((JsonNameAttribute)attr).Name.ToCharArray();
+                    }
+                    arrayName[0] = arrayName[0].ToString().ToLower()[0];
+                    string propertyName = new string(arrayName);
+                    list.Add("\"" + propertyName + "\":" + propertyValue.ToJson());
+                    listFields.Add(propertyName.ToLower());
+                }
+            }
+            var fields = type.GetFields(BindingFlags.Public);
+            for (int i = 0; i < fields.Length; i++)
+            {
+                if (!fields[i].IsPrivate && !listFields.Contains(fields[i].Name.ToLower()))
+                {
+                    var notMap = fields[i].GetCustomAttribute(notMappedType);
+                    if (notMap != null)
+                    {
+                        continue;
+                    }
+                    var propertyValue = fields[i].GetValue(value);
+                    if (propertyValue != null)
+                    {
+                        var arrayName = fields[i].Name.ToCharArray();
+                        var attr = fields[i].GetCustomAttribute(jsonNameType);
+                        if (attr != null)
+                        {
+                            arrayName = ((JsonNameAttribute)attr).Name.ToCharArray();
+                        }
+                        arrayName[0] = arrayName[0].ToString().ToLower()[0];
+                        string propertyName = new string(arrayName);
+                        list.Add("\"" + propertyName + "\":" + propertyValue.ToJson());
+                    }
+                }
+            }
+            builder.Append(string.Join(",", list.ToArray()));
+            builder.Append("}");
+        }
+        internal static void DefaultIncludeFields<T>(RequestData<T> request) where T : class
+        {
+            if (request.Filters.Count > 0)
+            {
+                for (var i = 0; i < request.Filters.Count; i++)
+                {
+                    if (!request.Filters[i].StartsWith("*"))
+                    {
+                        //User sepecify field
+                        return;
+                    }
+                }
+                List<string> listFields = new List<string>();
+                Type type = typeof(T);
+                var jsonNameType = typeof(JsonNameAttribute);
+                var notMappedType = typeof(NotMappedAttribute);
+                var properties = type.GetProperties();
+                for (int i = 0; i < properties.Length; i++)
+                {
+                    var notMap = properties[i].GetCustomAttribute(notMappedType);
+                    if (notMap != null)
+                    {
+                        continue;
+                    }
+                    var arrayName = properties[i].Name;
+                    var attr = properties[i].GetCustomAttribute(jsonNameType);
+                    if (attr != null)
+                    {
+                        arrayName = ((JsonNameAttribute)attr).Name;
+                    }
+                    request.GetFields(arrayName);
+                }
+                var fields = type.GetFields(BindingFlags.Public);
+                for (int i = 0; i < fields.Length; i++)
+                {
+                    if (!fields[i].IsPrivate && !listFields.Contains(fields[i].Name.ToLower()))
+                    {
+                        var notMap = fields[i].GetCustomAttribute(notMappedType);
+                        if (notMap != null)
+                        {
+                            continue;
+                        }
+                        var arrayName = fields[i].Name;
+                        var attr = fields[i].GetCustomAttribute(jsonNameType);
+                        if (attr != null)
+                        {
+                            arrayName = ((JsonNameAttribute)attr).Name;
+                        }
+                        request.GetFields(arrayName);
+                    }
+                }
 
+            }
+        }
         public static string ToJson(this object value)
         {
             if (value == null) return "";
@@ -490,98 +613,13 @@ namespace BE.Util
                         }
                         else
                         {
-                            builder.Append("{");
-                            List<string> list = new List<string>();
-                            List<string> listFields = new List<string>();
-                            var jsonNameType = typeof(JsonNameAttribute);
-                            var properties = type.GetProperties();
-                            for (int i = 0; i < properties.Length; i++)
-                            {
-                                var propertyValue = properties[i].GetValue(value);
-                                if (propertyValue != null)
-                                {
-                                    var arrayName = properties[i].Name.ToCharArray();
-                                    var attr = properties[i].GetCustomAttribute(jsonNameType);
-                                    if (attr != null)
-                                    {
-                                        arrayName = ((JsonNameAttribute)attr).Name.ToCharArray();
-                                    }
-                                    arrayName[0] = arrayName[0].ToString().ToLower()[0];
-                                    string propertyName = new string(arrayName);
-                                    list.Add("\"" + propertyName + "\":" + propertyValue.ToJson());
-                                    listFields.Add(propertyName.ToLower());
-                                }
-                            }
-                            var fields = type.GetFields(BindingFlags.Public);
-                            for (int i = 0; i < fields.Length; i++)
-                            {
-                                if (!fields[i].IsPrivate && !listFields.Contains(fields[i].Name.ToLower()))
-                                {
-                                    var propertyValue = fields[i].GetValue(value);
-                                    if (propertyValue != null)
-                                    {
-                                        var arrayName = fields[i].Name.ToCharArray();
-                                        var attr = fields[i].GetCustomAttribute(jsonNameType);
-                                        if (attr != null)
-                                        {
-                                            arrayName = ((JsonNameAttribute)attr).Name.ToCharArray();
-                                        }
-                                        arrayName[0] = arrayName[0].ToString().ToLower()[0];
-                                        string propertyName = new string(arrayName);
-                                        list.Add("\"" + propertyName + "\":" + propertyValue.ToJson());
-                                    }
-                                }
-                            }
-                            builder.Append(string.Join(",", list.ToArray()));
-                            builder.Append("}");
+                            WriteObject(type, value, builder);
                         }
                     }
                     else if (type.IsClass)
                     {
-                        builder.Append("{");
-                        List<string> list = new List<string>();
-                        var jsonNameType = typeof(JsonNameAttribute);
-                        List<string> listFields = new List<string>();
-                        var properties = type.GetProperties();
-                        for (int i = 0; i < properties.Length; i++)
-                        {
-                            var propertyValue = properties[i].GetValue(value);
-                            if (propertyValue != null)
-                            {
-                                var arrayName = properties[i].Name.ToCharArray();
-                                var attr = properties[i].GetCustomAttribute(jsonNameType);
-                                if (attr != null)
-                                {
-                                    arrayName = ((JsonNameAttribute)attr).Name.ToCharArray();
-                                }
-                                arrayName[0] = arrayName[0].ToString().ToLower()[0];
-                                string propertyName = new string(arrayName);
-                                list.Add("\"" + propertyName + "\":" + propertyValue.ToJson());
-                                listFields.Add(propertyName.ToLower());
-                            }
-                        }
-                        var fields = type.GetFields(BindingFlags.Public);
-                        for (int i = 0; i < fields.Length; i++)
-                        {
-                            if (!listFields.Contains(fields[i].Name.ToLower()))
-                            {
-                                var propertyValue = fields[i].GetValue(value);
-                                if (propertyValue != null)
-                                {
-                                    var arrayName = fields[i].Name.ToCharArray();
-                                    var attr = fields[i].GetCustomAttribute(jsonNameType);
-                                    if (attr != null)
-                                    {
-                                        arrayName = ((JsonNameAttribute)attr).Name.ToCharArray();
-                                    }
-                                    arrayName[0] = arrayName[0].ToString().ToLower()[0];
-                                    string propertyName = new string(arrayName);
-                                    list.Add("\"" + propertyName + "\":" + propertyValue.ToJson());
-                                }
-                            }
-                        }
-                        builder.Append(string.Join(",", list.ToArray()));
-                        builder.Append("}");
+
+                        WriteObject(type, value, builder);
                     }
                     return builder.ToString();
             }
@@ -675,6 +713,7 @@ namespace BE.Util
         public static void SetValueRequest(Type type, object o, RequestData request, bool ignoreId = false)
         {
             var attributeType = typeof(ColumnAttribute);
+            var attributeNotMappedType = typeof(NotMappedAttribute);
             List<string> listKeys = new List<string>();
             var properties = type.GetProperties();
             foreach (var p in properties)
@@ -697,7 +736,11 @@ namespace BE.Util
                     case TypeCode.Char:
                     case TypeCode.String:
                     case TypeCode.DateTime:
-                        
+                        var notMap = p.GetCustomAttribute(attributeNotMappedType);
+                        if (notMap != null)
+                        {
+                            continue;
+                        }
                         var attr = p.GetCustomAttribute(attributeType);
                         var name = p.Name;
                         if (attr != null)
@@ -737,13 +780,18 @@ namespace BE.Util
                         case TypeCode.Char:
                         case TypeCode.String:
                         case TypeCode.DateTime:
+                            var notMap = p.GetCustomAttribute(attributeNotMappedType);
+                            if (notMap != null)
+                            {
+                                continue;
+                            }
                             var attr = p.GetCustomAttribute(attributeType);
                             var name = p.Name;
                             if (attr != null)
                             {
                                 name = ((ColumnAttribute)attr).Name;
                             }
-                            if (ignoreId&& name.ToLower()=="id")
+                            if (ignoreId && name.ToLower() == "id")
                             {
                                 continue;
                             }
@@ -757,7 +805,7 @@ namespace BE.Util
         }
         public static string GetRequestString(string query, string schema, RequestData requestData = null)
         {
-            string json = "{\"query\":\"" + query + "\",\"schema\":\"" + schema + "\"" + (requestData != null ? ",\"data\":" + requestData.ToJson():"");
+            string json = "{\"query\":\"" + query + "\",\"schema\":\"" + schema + "\"" + (requestData != null ? ",\"data\":" + requestData.ToJson() : "");
             json += "}";
             return json;
         }
@@ -783,6 +831,12 @@ public class ColumnAttribute : Attribute
         _Name = name;
     }
     public string Name { get { return _Name; } }
+}
+public class NotMappedAttribute : Attribute
+{
+    public NotMappedAttribute()
+    {
+    }
 }
 public class SchemaAttribute : Attribute
 {

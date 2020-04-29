@@ -100,7 +100,11 @@ namespace BE.NetWork
         public void SelectMany<T>(RequestData<T> requestData = null, Action<bool, BackResponse<List<T>>> callback = null) where T : class
         {
             var schema = GetSchema(typeof(T));
-            SelectMany(schema, requestData, callback);
+            if (requestData != null)
+            {
+                Helper.DefaultIncludeFields(requestData);
+            }
+            SelectMany<T>(schema, requestData, callback);
         }
         /// <summary>
         /// Execute a select "schema" command with the filter condition of "conditions"
@@ -141,7 +145,11 @@ namespace BE.NetWork
         /// <param name="requestData">Request Data Object</param>
         public void SelectOne<T>(RequestData<T> requestData = null, Action<bool, BackResponse<T>> callback = null) where T : class
         {
-            var schema = GetSchema(typeof(T));
+            var schema = GetSchema(typeof(T)); 
+            if (requestData != null)
+            {
+                Helper.DefaultIncludeFields(requestData);
+            }
             SelectOne(schema, requestData, callback);
         }
         /// <summary>
