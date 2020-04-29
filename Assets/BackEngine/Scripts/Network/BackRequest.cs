@@ -121,7 +121,7 @@ namespace BE.NetWork
         /// <param name="requestData">Request Data Object</param>
         public void SelectMany<T>(Action<bool, BackResponse<List<T>>> callback = null) where T : class
         {
-            SelectMany(null, callback);
+            SelectMany<T>(null, callback);
         }
         /// <summary>
         /// Execute a select one document command with the filter condition of "conditions", the return is random if there are more than one documents
