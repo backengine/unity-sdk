@@ -19,9 +19,9 @@ namespace BE.Demo
             if (!string.IsNullOrEmpty(Email.text) && !string.IsNullOrEmpty(Password.text))
             {
                 Manager.ShowLoading();
-                RequestData requestData = new RequestData();
+                var requestData = new RequestData<UserModel>();
                 requestData=requestData.Where(
-                    x => x["email"].Equals(Email.text) & x["password"].Equals(Password.text)
+                    x => (x.email+Email.text) == (x.password+Password.text)
                 );
                 BERequest.Instance.Auth<UserModel>("users", requestData, (error, response) =>
                 {

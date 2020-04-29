@@ -19,7 +19,7 @@ namespace BE.Models
         public RequestData()
         {
         }
-        public RequestData Where(QueryableFunc callback)
+        public  RequestData Where(QueryableFunc callback)
         {
             var builder = new ConditionBuilder();
             var value = callback(builder);
@@ -91,18 +91,32 @@ namespace BE.Models
 
     }
 
-    public class RequestData<T>:RequestData
+    public class RequestData<T>: RequestData where T : class
     {
         
         public RequestData()
         {
         }
-      
+        public  RequestData<T> Where( Expression<Func<T, bool>> predicate)
+        {
+            var builder = new ConditionExpressionBulder<T>(predicate);
+            var value = builder.ToCondition();
+            if (this.Condition == null)
+            {
+                this.Condition = value;
+            }
+            else
+            {
+                var v = this.Condition;
+                this.Condition = v & value;
+            }
+            return this;
+        }
         /// <summary>
         /// Add Request Filter
         /// </summary>
         /// <param name="fieldNames">list name of fields want to get, split by "," </param>
-        public RequestData GetField(Expression<Func<T>> expression)
+        public RequestData<T> GetField(Expression<Func<T>> expression)
         {
             MemberInfo memberInfo;
             if (expression.Body is UnaryExpression)
@@ -137,7 +151,7 @@ namespace BE.Models
         /// Add Request Filter
         /// </summary>
         /// <param name="fieldNames">name of fields want to get the reference object, split by ","</param>
-        public RequestData GetRefs(Expression<Func<T>> expression)
+        public RequestData<T> GetRefs(Expression<Func<T>> expression)
         {
             MemberInfo memberInfo;
             if (expression.Body is UnaryExpression)
@@ -169,22 +183,8 @@ namespace BE.Models
         }
 
     }
-    public static class RequestHelper
-    {
-        public static RequestData Where<T>(this RequestData<T> source, Expression<Func<T, bool>> predicate) where T : class
-        {
-            var builder = new ConditionExpressionBulder<T>(predicate);
-            var value = builder.ToCondition();
-            if (source.Condition == null)
-            {
-                source.Condition = value;
-            }
-            else
-            {
-                var v = source.Condition;
-                source.Condition = v & value;
-            }
-            return source;
-        }
-    }
+    //public static class RequestHelper
+    //{
+     
+    //}
 }
