@@ -45,6 +45,11 @@ namespace BE.NetWork
 
         private string token;
 
+        private void Start()
+        {
+            startSession();
+        }
+
         public void Auth<T>(string schema, RequestData requestData, Action<bool, BackResponse<T>> callback = null)
         {
             string data = Helper.GetRequestString("auth", schema, requestData);
@@ -228,13 +233,21 @@ namespace BE.NetWork
             StartCoroutine(ProcessQuery(data, callback));
         }
 
+        void startSession()
+        {
+            RequestData requestData = new RequestData();
+            BELog log = new BELog();
+            Helper.SetValueRequest(typeof(BELog), log, requestData,true);
+            string data = Helper.GetRequestString("startSession","",requestData);
+            StartCoroutine(ProcessQuery<BELog>(data));
+        }
 
         /// <summary>
         /// Process request query
         /// </summary>
         /// <param name="jsonData"></param>
         /// <returns></returns>
-        IEnumerator ProcessQuery<T>(string jsonData, Action<bool, BackResponse<T>> callback)
+        IEnumerator ProcessQuery<T>(string jsonData, Action<bool, BackResponse<T>> callback=null)
         {
             Debug.Log(jsonData);
             if (backConfig == null)
@@ -251,7 +264,7 @@ namespace BE.NetWork
                 Debug.LogError("You must input a valid App Secret to BackConfig object in BackEngine/Resources folder.");
                 yield break;
             }
-            using (UnityWebRequest request = UnityWebRequest.Put(Env.END_POINT + "/dynamic", jsonData))
+            using (UnityWebRequest request = UnityWebRequest.Put(Env.DEBUG_END_POINT + "/dynamic", jsonData))
             {
                 request.method = "POST";
                 request.SetRequestHeader("Content-Type", "application/json");
@@ -285,7 +298,7 @@ namespace BE.NetWork
                         token = backResponse.token;
                     }
                 }
-                callback(backResponse.isError, backResponse);
+                callback?.Invoke(backResponse.isError, backResponse);
             }
         }
 
@@ -293,6 +306,7 @@ namespace BE.NetWork
         private class Env
         {
             public const string END_POINT = "https://backengine-server.herokuapp.com/api";
+            public const string DEBUG_END_POINT = "http://localhost:5000/api";
         }
 
 
