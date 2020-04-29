@@ -362,7 +362,7 @@ namespace BE.Models
         {
             fieldName = name;
         }
-        public Condition Equals(object value)
+        public new Condition Equals(object value)
         {
             Condition condition = new Condition(fieldName, value, ConditionType.Equals);
             return condition;

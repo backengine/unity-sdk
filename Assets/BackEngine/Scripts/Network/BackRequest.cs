@@ -44,14 +44,43 @@ namespace BE.NetWork
         private BackConfiguration backConfig;
 
         private string token;
-
         public void Auth<T>(string schema, RequestData requestData, Action<bool, BackResponse<T>> callback = null)
         {
             string data = Helper.GetRequestString("auth", schema, requestData);
             StartCoroutine(ProcessQuery(data, callback));
         }
-
-
+        public void Auth<T>( RequestData requestData, Action<bool, BackResponse<T>> callback = null)
+        {
+            Type t = typeof(T);
+            var attr = t.GetCustomAttribute(typeof(SchemaAttribute));
+            var schema = "";
+            if (attr != null)
+            {
+                schema = ((SchemaAttribute)attr).Name;
+            }
+            else
+            {
+                schema = t.Name;
+            }
+            string data = Helper.GetRequestString("auth", schema, requestData);
+            StartCoroutine(ProcessQuery(data, callback));
+        }
+        public void Auth<T>(RequestData<T> requestData, Action<bool, BackResponse<T>> callback = null) where T:class
+        {
+            Type t = typeof(T);
+            var attr = t.GetCustomAttribute(typeof(SchemaAttribute));
+            var schema = "";
+            if (attr != null)
+            {
+                schema = ((SchemaAttribute)attr).Name;
+            }
+            else
+            {
+                schema = t.Name;
+            }
+            string data = Helper.GetRequestString("auth", schema, requestData);
+            StartCoroutine(ProcessQuery(data, callback));
+        }
         public void InsertAuth<T>(string schema, RequestData requestData, Action<bool, BackResponse<T>> callback = null)
         {
             string data = Helper.GetRequestString("insertAuth", schema, requestData);

@@ -21,9 +21,9 @@ namespace BE.Demo
                 Manager.ShowLoading();
                 var requestData = new RequestData<UserModel>();
                 requestData=requestData.Where(
-                    x => (x.email+Email.text) == (x.password+Password.text)
+                    x => (x.email+"_"+ x.password ) == (Email.text +"_"+ Password.text)
                 );
-                BERequest.Instance.Auth<UserModel>("users", requestData, (error, response) =>
+                BERequest.Instance.Auth(requestData, (error, response) =>
                 {
                     if (!error)
                     {
