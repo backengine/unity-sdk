@@ -75,7 +75,7 @@ namespace BE.Util
                 }
                 index++;
             }
-            if (start > index)
+            if (start < index)
             {
                 list.Add(st.Substring(start, index - start));
             }
