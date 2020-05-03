@@ -35,7 +35,7 @@ namespace BE.Demo
         {
             Manager.ShowLoading();
             var requestData = new RequestData<ScoreModel>();
-            requestData.GetField(x=>x.score).GetRefs(x=>x.user).Sort(x=>x.score, SortType.Desc);
+            requestData.GetField(x=>x.score).GetRefs(x=>x.user).Sort(x=>x.score, SortType.Desc).Take(1,20);
             BERequest.Instance.SelectMany(requestData, (error, response) => {
                 Manager.HideLoading();
                 if (!error)

@@ -19,11 +19,14 @@ namespace BE.Demo
             if (!string.IsNullOrEmpty(Email.text) && !string.IsNullOrEmpty(Password.text))
             {
                 Manager.ShowLoading();
+
                 var requestData = new RequestData<UserModel>();
 
-               requestData =requestData.Where(
+                requestData =requestData.Where(
                     x => (x.email==Email.text) && (x.password== Password.text)
                 );
+
+
                 BERequest.Instance.Auth(requestData, (error, response) =>
                 {
                     if (!error)
@@ -39,6 +42,17 @@ namespace BE.Demo
                     }
                     Manager.HideLoading();
                 });
+
+
+                //Model style code
+
+                //UserModel user = new UserModel();
+                //user.email = Email.text;
+                //user.password = Password.text;
+
+                //BERequest.Instance.Auth<UserModel>(user, (error, response) => {
+
+                //});
             }
         }
 
