@@ -378,7 +378,7 @@ namespace BE.NetWork
 
         private class Env
         {
-            public const string END_POINT = "http://localhost:5000/api";
+            public const string END_POINT = "https://backengine-server.herokuapp.com/api";
         }
 
 
