@@ -337,7 +337,7 @@ namespace BE.NetWork
                 Debug.LogError("You must input a valid App Secret to BackConfig object in BackEngine/Resources folder.");
                 yield break;
             }
-            using (UnityWebRequest request = UnityWebRequest.Put(Env.END_POINT + "/dynamic", jsonData))
+            using (UnityWebRequest request = UnityWebRequest.Put(backConfig.getEndPoint() + "/dynamic", jsonData))
             {
                 request.method = "POST";
                 request.SetRequestHeader("Content-Type", "application/json");
@@ -374,13 +374,6 @@ namespace BE.NetWork
                 callback?.Invoke(backResponse.isError, backResponse);
             }
         }
-
-
-        private class Env
-        {
-            public const string END_POINT = "https://backengine-server.herokuapp.com/api";
-        }
-
 
     }
 
