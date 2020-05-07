@@ -24,6 +24,7 @@ namespace BE.Demo
                 model.email = Email.text;
                 model.name = Name.text;
                 model.password = Password.text;
+
                 BERequest.Instance.InsertAuth(model, (error, response) => {
                     if (!error)
                     {
