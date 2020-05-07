@@ -702,7 +702,7 @@ namespace BE.Util
                             {
                                 name = ((ColumnAttribute)attr).Name;
                             }
-                            if (name.ToLower() == "id")
+                            if (name.ToLower() == "id" || !idOnly)
                             {
                                 listKeys.Add(name.ToLower());
                                 object value = p.GetValue(o);

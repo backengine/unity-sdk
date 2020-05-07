@@ -11,17 +11,6 @@ namespace BE.Models
     public class Condition : ConditionBase
     {
 
-        public Type[] acceptTypes = { typeof(string),
-            typeof(int),
-            typeof(float),
-            typeof(double),
-            typeof(bool),
-            typeof(List<string>),
-            typeof(List<int>),
-            typeof(List<float>),
-            typeof(List<double>),
-            typeof(BEExpression)
-        };
 
         /// <summary>
         /// Condition constructor
@@ -32,15 +21,38 @@ namespace BE.Models
         public Condition(string fieldName, object value, ConditionType conditionType = ConditionType.Equals)
             : base(conditionType)
         {
-            if (Array.Exists(acceptTypes, type => type == value.GetType()))
+            if (value == null)
             {
                 this.FieldName = fieldName;
                 this.Value = value;
             }
             else
             {
-                Exception exception = new Exception("Type of condition value wrongs. See acceptTypes");
-                throw exception;
+                var typeCode = Type.GetTypeCode(value.GetType());
+                switch (typeCode)
+                {
+                    case TypeCode.Boolean:
+                    case TypeCode.Byte:
+                    case TypeCode.SByte:
+                    case TypeCode.UInt16:
+                    case TypeCode.UInt32:
+                    case TypeCode.UInt64:
+                    case TypeCode.Int16:
+                    case TypeCode.Int32:
+                    case TypeCode.Int64:
+                    case TypeCode.Decimal:
+                    case TypeCode.Single:
+                    case TypeCode.Double:
+                    case TypeCode.Char:
+                    case TypeCode.String:
+                    case TypeCode.DateTime:
+                        this.FieldName = fieldName;
+                        this.Value = value;
+                        break;
+                    default:
+                        Exception exception = new Exception("Type of condition value wrongs. See acceptTypes");
+                        throw exception;
+                }
             }
         }
         public string FieldName { get; }
