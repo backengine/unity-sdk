@@ -665,7 +665,10 @@ namespace BE.Util
                         {
                             listKeys.Add(name.ToLower());
                             object value = p.GetValue(o);
-                            request.Where(x => x[name].Equals(value));
+                            if (value != null)
+                            {
+                                request.Where(x => x[name].Equals(value));
+                            }
                         }
                         break;
                 }
