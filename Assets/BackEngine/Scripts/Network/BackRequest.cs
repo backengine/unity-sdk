@@ -69,15 +69,6 @@ namespace BE.NetWork
             string data = Helper.GetRequestString("auth", schema, requestData);
             StartCoroutine(ProcessQuery(data, callback));
         }
-        public void Auth<T>(T o, Action<bool, BackResponse<T>> callback = null) where T : BEModel
-        {
-            Type t = typeof(T);
-            var schema = GetSchema(t);
-            var requestData = new RequestData<T>();
-            Helper.MakeWhereRequest(t, o, requestData, false);
-            string data = Helper.GetRequestString("auth", schema, requestData);
-            StartCoroutine(ProcessQuery(data, callback));
-        }
         protected string GetSchema(Type t)
         {
             var attr = t.GetCustomAttribute(typeof(SchemaAttribute));
@@ -251,7 +242,7 @@ namespace BE.NetWork
             Type t = o.GetType();
             RequestData requestData = new RequestData();
             Helper.SetValueRequest(t, o, requestData, true);
-            Helper.MakeWhereRequest(t, o, requestData);
+            Helper.MakeWhereIdentityRequest(t, o, requestData);
             var schema = GetSchema(t);
             string data = Helper.GetRequestString("updateOne", schema, requestData);
             StartCoroutine(ProcessQuery(data, callback));
@@ -300,7 +291,7 @@ namespace BE.NetWork
             RequestData request = new RequestData();
             Type t = o.GetType();
             RequestData requestData = new RequestData();
-            Helper.MakeWhereRequest(t, o, requestData);
+            Helper.MakeWhereIdentityRequest(t, o, requestData);
             var attr = t.GetCustomAttribute(typeof(SchemaAttribute));
             var schema = "";
             if (attr != null)

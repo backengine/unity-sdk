@@ -20,16 +20,19 @@ namespace BE.Demo
             {
                 Manager.ShowLoading();
 
-                UserModel model = new UserModel();
-                model.email = Email.text;
-                model.password = Password.text;
+                var requestData = new RequestData<UserModel>();
 
-                BERequest.Instance.Auth(model, (error, response) =>
+                requestData =requestData.Where(
+                    x => (x.email==Email.text) && (x.password== Password.text)
+                );
+
+
+                BERequest.Instance.Auth(requestData, (error, response) =>
                 {
                     if (!error)
                     {
-                        model = response.data;
-                        Manager.User = model;
+                        UserModel user = response.data;
+                        Manager.User = user;
                         Manager.HideLogin();
                         Manager.ShowLeader();
                     }

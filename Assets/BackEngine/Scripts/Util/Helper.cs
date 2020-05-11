@@ -630,7 +630,8 @@ namespace BE.Util
         /// </summary>
         /// <param name="conditions"></param>
         /// <returns></returns>
-        public static void MakeWhereRequest(Type type, object o, RequestData request,bool idOnly=true)
+
+        public static void MakeWhereIdentityRequest(Type type, object o, RequestData request)
         {
             var attributeType = typeof(ColumnAttribute);
             List<string> listKeys = new List<string>();
@@ -661,14 +662,11 @@ namespace BE.Util
                         {
                             name = ((ColumnAttribute)attr).Name;
                         }
-                        if (name.ToLower() == "id"||!idOnly)
+                        if (name.ToLower() == "id")
                         {
                             listKeys.Add(name.ToLower());
                             object value = p.GetValue(o);
-                            if (value != null)
-                            {
-                                request.Where(x => x[name].Equals(value));
-                            }
+                            request.Where(x => x[name].Equals(value));
                         }
                         break;
                 }
@@ -702,7 +700,7 @@ namespace BE.Util
                             {
                                 name = ((ColumnAttribute)attr).Name;
                             }
-                            if (name.ToLower() == "id" || !idOnly)
+                            if (name.ToLower() == "id")
                             {
                                 listKeys.Add(name.ToLower());
                                 object value = p.GetValue(o);
