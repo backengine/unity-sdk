@@ -40,16 +40,6 @@ namespace BE.Demo
                     Manager.HideLoading();
                 });
 
-
-                //Model style code
-
-                //UserModel user = new UserModel();
-                //user.email = Email.text;
-                //user.password = Password.text;
-
-                //BERequest.Instance.Auth<UserModel>(user, (error, response) => {
-
-                //});
             }
         }
 

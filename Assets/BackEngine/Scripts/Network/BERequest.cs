@@ -41,7 +41,7 @@ namespace BE.NetWork
 
         private static object deadLock = new object();
 
-        private BackConfiguration backConfig;
+        private BEConfiguration beConfig;
 
         private string token;
 
@@ -363,7 +363,7 @@ namespace BE.NetWork
         /// </summary>
         /// <param name="requestData">request data</param>
         /// <param name="callback">callback</param>
-        public void DeleteOne<T>(RequestData<T> requestData, Action<bool, BackResponse<int>> callback = null) where T: BEModel
+        public void DeleteOne<T>(RequestData<T> requestData, Action<bool, BackResponse<int>> callback = null) where T : BEModel
         {
             string schema = GetSchema(typeof(T));
             string data = Helper.GetRequestString("deleteOne", schema, requestData);
@@ -439,25 +439,25 @@ namespace BE.NetWork
         IEnumerator ProcessQuery<T>(string jsonData, Action<bool, BackResponse<T>> callback)
         {
             Debug.Log(jsonData);
-            if (backConfig == null)
+            if (beConfig == null)
             {
-                backConfig = Resources.Load<BackConfiguration>("BackConfig");
+                beConfig = Resources.Load<BEConfiguration>("BackConfig");
             }
-            if (backConfig == null)
+            if (beConfig == null)
             {
                 Debug.LogError("Cannot find BackConfiguration object, please try import package again.");
                 yield break;
             }
-            if (string.IsNullOrEmpty(backConfig.appSecret))
+            if (string.IsNullOrEmpty(beConfig.appSecret))
             {
                 Debug.LogError("You must input a valid App Secret to BackConfig object in BackEngine/Resources folder.");
                 yield break;
             }
-            using (UnityWebRequest request = UnityWebRequest.Put(backConfig.getEndPoint() + "/dynamic", jsonData))
+            using (UnityWebRequest request = UnityWebRequest.Put(beConfig.getEndPoint() + "/dynamic", jsonData))
             {
                 request.method = "POST";
                 request.SetRequestHeader("Content-Type", "application/json");
-                request.SetRequestHeader("Secret", "Bearer " + backConfig.appSecret);
+                request.SetRequestHeader("Secret", "Bearer " + beConfig.appSecret);
                 if (!string.IsNullOrEmpty(token))
                 {
                     request.SetRequestHeader("Authorization", "Bearer " + token);

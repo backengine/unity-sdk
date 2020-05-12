@@ -62,6 +62,7 @@ namespace BE.Models
             OrCondition or = new OrCondition(condition1, condition2);
             return or;
         }
+
         public static AndCondition operator &(Condition condition1, Condition condition2)
         {
             AndCondition a = new AndCondition(condition1, condition2);

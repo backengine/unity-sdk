@@ -2,7 +2,7 @@
 
 namespace BE.Util
 {
-    public class BackConfiguration : ScriptableObject
+    public class BEConfiguration : ScriptableObject
     {
         public string appSecret;
         public BERegion region = BERegion.US;

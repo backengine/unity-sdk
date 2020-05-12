@@ -19,7 +19,7 @@ namespace BE.Models
         public RequestData()
         {
         }
-        public  RequestData Where(QueryableFunc callback)
+        public RequestData Where(QueryableFunc callback)
         {
             var builder = new ConditionBuilder();
             var value = callback(builder);
@@ -82,7 +82,7 @@ namespace BE.Models
             return this;
         }
 
-        public RequestData Sort(string fieldName,  SortType sortType = SortType.Asc)
+        public RequestData Sort(string fieldName, SortType sortType = SortType.Asc)
         {
             if (Sorts == null) Sorts = new Dictionary<string, SortType>();
             Sorts.Add(fieldName, sortType);
@@ -91,13 +91,13 @@ namespace BE.Models
 
     }
 
-    public class RequestData<T>: RequestData where T : BEModel
+    public class RequestData<T> : RequestData where T : BEModel
     {
-        
+
         public RequestData()
         {
         }
-        public  RequestData<T> Where( Expression<Func<T, bool>> predicate)
+        public RequestData<T> Where(Expression<Func<T, bool>> predicate)
         {
             var builder = new ConditionExpressionBulder<T>(predicate);
             var value = builder.ToCondition();
@@ -116,7 +116,7 @@ namespace BE.Models
         /// Add Request Filter
         /// </summary>
         /// <param name="fieldNames">list name of fields want to get, split by "," </param>
-        public RequestData<T> GetField<P>(Expression<Func<T,P>> expression)
+        public RequestData<T> GetField<P>(Expression<Func<T, P>> expression)
         {
             string propertyName = GetMemberName(expression);
             GetFields(propertyName);
@@ -160,13 +160,13 @@ namespace BE.Models
         /// Add Request Filter
         /// </summary>
         /// <param name="fieldNames">name of fields want to get the reference object, split by ","</param>
-        public RequestData<T> GetRefs<P>(Expression<Func<T,P>> expression)
+        public RequestData<T> GetRefs<P>(Expression<Func<T, P>> expression)
         {
             string propertyName = GetMemberName(expression);
             GetRefs(propertyName);
             return this;
         }
-        
+
         /// <summary>
         /// Set page and pageSize for select request
         /// </summary>
@@ -177,18 +177,18 @@ namespace BE.Models
             base.Take(page, pageSize);
             return this;
         }
-        public RequestData<T> SetValue<P>(Expression<Func<T, P>> expression,object value)
+        public RequestData<T> SetValue<P>(Expression<Func<T, P>> expression, object value)
         {
             string propertyName = GetMemberName(expression);
             SetValue(propertyName, value);
             return this;
         }
-        public RequestData Sort<P>(Expression<Func<T, P>> expression, SortType sortType=SortType.Asc)
+        public RequestData Sort<P>(Expression<Func<T, P>> expression, SortType sortType = SortType.Asc)
         {
             string propertyName = GetMemberName(expression);
             Sort(propertyName, sortType);
             return this;
         }
-       
+
     }
 }
